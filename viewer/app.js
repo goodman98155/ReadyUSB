@@ -7,6 +7,10 @@
 (function () {
   'use strict';
 
+  // Release version: shown in the page footer. Keep README.txt and CHANGELOG.md in step
+  // (tools/make-release.ps1 checks this).
+  var VERSION = '0.2.0';
+
   var CONFIG = window.LIBRARY_CONFIG || {};
   var CACHE_KEY = 'readyusb.shelf.v1';
   var TEXT_KEY = 'readyusb.textScale';
@@ -175,6 +179,7 @@
     document.querySelectorAll('.docs-folder-name').forEach(function (el) { el.textContent = docsFolder(); });
     document.querySelectorAll('.library-folder-name').forEach(function (el) { el.textContent = libraryFolder(); });
     if (CONFIG.title) document.title = CONFIG.title;
+    $('appVersion').textContent = VERSION;
   }
 
   // ---------------------------------------------------------------- book access

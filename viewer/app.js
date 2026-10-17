@@ -533,16 +533,19 @@
       });
       return;
     }
+    var ua = navigator.userAgent;
+    var browser = /Firefox\//.test(ua) ? 'Firefox' : (/Safari\//.test(ua) && !/Chrome|Chromium|Edg\//.test(ua) ? 'Safari' : 'This browser');
     openDialog({
       title: 'Add your own documents',
-      html: '<p>This browser can\'t save files to the drive by itself, but you can copy them in:</p>' +
+      html: '<p><strong>' + browser + ' can\'t save files to this drive</strong>, so this button can\'t add them for you. ' +
+        'You can copy them in yourself instead:</p>' +
         '<ol class="steps">' +
           '<li>Open this drive in File Explorer (on a Mac, Finder).</li>' +
           '<li>Open the folder named <strong>' + escapeHtml(docsFolder()) + '</strong>.</li>' +
           '<li>Copy your files into it. You can make folders inside it to group them, like “Medical”.</li>' +
           '<li>Come back here and click <strong>Open my library again</strong>.</li>' +
         '</ol>' +
-        (supportsFolderMemory ? '' : '<p class="dialog-tip">Tip: in Chrome or Edge you can add documents right from this page.</p>'),
+        (supportsFolderMemory ? '' : '<p class="dialog-tip">Or open this library in Chrome or Edge, where you can add documents right from this page.</p>'),
       actions: [
         { label: 'Close', kind: 'link' },
         { label: 'Open my library again', kind: 'primary', run: function () { openLibrary(); } }

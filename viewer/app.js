@@ -9,7 +9,10 @@
 
   // Release version: shown in the page footer. Keep README.txt and CHANGELOG.md in step
   // (tools/make-release.ps1 checks this).
-  var VERSION = '0.2.0';
+  var VERSION = '0.3.0';
+
+  // Title search is hidden until full-text search is ready; the code stays. true shows both search boxes.
+  var SHOW_SEARCH = false;
 
   var CONFIG = window.LIBRARY_CONFIG || {};
   var CACHE_KEY = 'readyusb.shelf.v1';
@@ -433,8 +436,11 @@
     });
   }
 
-  /** Reads the documents folder again after something was added or removed. */
-  async function refreshDocs() {
+  /**
+   * Reads the documents folder again after something was added or removed. fromOtherTab: another tab
+   * changed it; don't write the cache back, or the tabs would keep refreshing each other.
+   */
+  async function refreshDocs(fromOtherTab) {
     var found = [];
     try {
       var dir = await state.libraryDir.getDirectoryHandle(docsFolder());
@@ -443,7 +449,7 @@
     } catch (e) { /* no documents folder yet */ }
     setDocs(found.filter(function (e) { return !/\.zim$/i.test(e.file.name); })
       .map(function (e) { return makeDoc(e, docRelPath(e.path)); }));
-    saveShelfCache();
+    if (!fromOtherTab) saveShelfCache();
     renderShelf();
   }
 
@@ -601,8 +607,8 @@
             if (!(await ensureWritable())) throw needWriteError();
             await doc.dir.removeEntry(doc.handle.name);
             await refreshDocs();
-            go(null);
             toast('Removed “' + doc.info.name + '” from the drive.');
+            backToLibrary();
           }
         }
       ]
@@ -809,8 +815,9 @@
       if (r.dataset.action === 'connect') { openLibrary(); close(); return; }
       close();
       input.blur();
-      if (r.dataset.doc) go({ doc: r.dataset.doc });
-      else go({ book: r.dataset.book, page: r.dataset.page });
+      var open = panel.id === 'libraryResults' ? openFromLibrary : go;
+      if (r.dataset.doc) open({ doc: r.dataset.doc });
+      else open({ book: r.dataset.book, page: r.dataset.page });
     });
   }
 
@@ -857,8 +864,9 @@
     }).join('');
     if (openFirst) {
       close();
-      if (all[0].doc) go({ doc: all[0].doc.id });
-      else go({ book: all[0].book.id, page: all[0].entry.fullPath });
+      var open = panel.id === 'libraryResults' ? openFromLibrary : go;
+      if (all[0].doc) open({ doc: all[0].doc.id });
+      else open({ book: all[0].book.id, page: all[0].entry.fullPath });
     }
   }
 
@@ -917,6 +925,30 @@
     var h = routeToHash(r);
     if (location.hash === h || (h === '#' && !location.hash)) route();
     else location.hash = h;
+  }
+
+  /**
+   * Opens a book or document picked from the library. With a remembered folder (Chrome/Edge) it gets a
+   * new tab, which reconnects on its own, so the library stays open here. Firefox/Safari would have to
+   * choose the folder again in every new tab, so they stay in this tab.
+   */
+  function openFromLibrary(r) {
+    if (supportsFolderMemory && state.dirHandle) {
+      var w = window.open(location.href.split('#')[0] + routeToHash(r), '_blank');
+      if (w) return;
+    }
+    go(r);
+  }
+
+  /** "Back to library": a tab opened from the library closes, which returns to the library tab. */
+  function backToLibrary() {
+    if (window.opener && !window.opener.closed) {
+      window.close();
+      // Browsers can refuse to close a tab; fall back to showing the library here.
+      setTimeout(function () { go(null); }, 150);
+      return;
+    }
+    go(null);
   }
 
   function route(r) {
@@ -1191,7 +1223,8 @@
       console.warn('Could not show page', path, err);
       var msg;
       if (err.code === 'NOT_FOUND') msg = '<strong>This page isn\'t included in this book.</strong><span>Some books are shortened copies and leave out less common pages.</span>';
-      else if (err.code === 'NO_MAIN') msg = '<strong>This book has no front page.</strong><span>Use the search box above to find something in it.</span>';
+      else if (err.code === 'NO_MAIN') msg = '<strong>This book has no front page.</strong>' +
+        (SHOW_SEARCH ? '<span>Use the search box above to find something in it.</span>' : '<span>It can\'t be opened from the library yet.</span>');
       else msg = '<strong>' + escapeHtml(friendlyError(err)) + '</strong>';
       $('page').removeAttribute('srcdoc');
       state.current = { book: book, entry: null, path: path };
@@ -1251,7 +1284,7 @@
           '<span>It\'s a ' + escapeHtml(docType(info).label) + '. Save a copy to this computer, then open it with a program like Word, Excel or LibreOffice.</span>' +
           '<span class="status-actions"><a class="primary-button small" id="statusSaveBtn" download="' + escapeHtml(info.name) + '" href="' + url + '">Save a copy</a>' +
           '<button type="button" class="link-button" id="statusHomeBtn">Back to all books and documents</button></span>', 'file');
-        $('statusHomeBtn').onclick = function () { go(null); };
+        $('statusHomeBtn').onclick = backToLibrary;
       } else {
         var html = await documentHtml(info, file, url);
         if (token !== state.navToken) return;
@@ -1311,7 +1344,7 @@
       openExternal(r.url);
     });
     idoc.addEventListener('keydown', function (ev) {
-      if (ev.key === '/' && !/input|textarea/i.test(ev.target.tagName)) { ev.preventDefault(); $('readerSearch').focus(); }
+      if (SHOW_SEARCH && ev.key === '/' && !/input|textarea/i.test(ev.target.tagName)) { ev.preventDefault(); $('readerSearch').focus(); }
     });
     // Close any open result list when the page is clicked.
     idoc.addEventListener('mousedown', function () { $('readerResults').hidden = true; });
@@ -1361,7 +1394,7 @@
       if (!card) return;
       var id = card.getAttribute('data-doc');
       if (!state.connected) { state.pendingRoute = { doc: id }; openLibrary(); return; }
-      go({ doc: id });
+      openFromLibrary({ doc: id });
     });
 
     $('shelf').addEventListener('click', function (ev) {
@@ -1371,13 +1404,13 @@
       if (!state.connected) { state.pendingRoute = { book: id }; openLibrary(); return; }
       var book = state.byId[id];
       if (book && book.info.error) { toast(book.info.error); return; }
-      go({ book: id });
+      openFromLibrary({ book: id });
     });
 
-    $('libraryBtn').addEventListener('click', function () { go(null); });
+    $('libraryBtn').addEventListener('click', backToLibrary);
     $('bookHomeBtn').addEventListener('click', function () {
       if (state.current && state.current.book) go({ book: state.current.book.id });
-      else go(null);
+      else backToLibrary();
     });
     $('backBtn').addEventListener('click', function () { history.back(); });
     $('forwardBtn').addEventListener('click', function () { history.forward(); });
@@ -1391,6 +1424,10 @@
     attachSearch($('librarySearch'), $('libraryResults'));
     attachSearch($('readerSearch'), $('readerResults'));
     window.addEventListener('hashchange', function () { route(); });
+    // A document added or removed in another tab (books open in their own tabs): refresh this shelf.
+    window.addEventListener('storage', function (ev) {
+      if (ev.key === CACHE_KEY && state.connected && state.libraryDir) refreshDocs(true);
+    });
 
     // Drop .zim files anywhere on the library page to read them; drop other files to add them as documents.
     document.addEventListener('dragover', function (ev) { ev.preventDefault(); });
@@ -1407,6 +1444,7 @@
   }
 
   async function start() {
+    document.body.classList.toggle('no-search', !SHOW_SEARCH);
     applyConfig();
     bindEvents();
     var ts = lsGet(TEXT_KEY);
@@ -1428,7 +1466,7 @@
     }
     renderShelf();
     route();
-    $('librarySearch').focus();
+    if (SHOW_SEARCH) $('librarySearch').focus();
   }
 
   start();

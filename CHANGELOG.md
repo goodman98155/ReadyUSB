@@ -3,6 +3,17 @@
 ReadyUSB uses [semantic versioning](https://semver.org/). The version lives in `viewer/app.js`
 (`VERSION`) and is shown in the page footer.
 
+## 0.3.0 (2026-10-17)
+
+- **Books and documents open in their own tab** in Chrome and Edge, so the library stays open.
+  Firefox and Safari keep using one tab, because they'd ask for the folder again in every new tab.
+- **"Back to library" button** at the top left of every book and document, filled so it's easy to
+  find. In a tab opened from the library, it closes the tab and returns you to the library.
+- Tabs keep their document lists in step: a document removed in one tab disappears from the others.
+- **Search is hidden for now** until searching inside books is ready. Title search can be turned
+  back on in `viewer/app.js` (`SHOW_SEARCH`).
+- Shorter, simpler setup instructions in README.txt.
+
 ## 0.2.0 (2026-10-17)
 
 - **My documents.** Keep your own PDFs, pictures, manuals and other files on the drive, next to the

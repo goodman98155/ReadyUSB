@@ -10,5 +10,8 @@ window.LIBRARY_CONFIG = {
   subtitle: "Trusted reference books that work without internet.",
 
   // Name of the folder that holds the .zim files (shown in the instructions)
-  zimFolderName: "zims"
+  zimFolderName: "zims",
+
+  // Name of the folder that holds the reader's own documents (PDFs, pictures, manuals...)
+  documentsFolderName: "documents"
 };

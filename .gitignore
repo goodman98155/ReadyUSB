@@ -5,6 +5,10 @@ CLAUDE.md
 zims/*
 !zims/PUT-ZIM-FILES-HERE.txt
 
+# Personal documents are the reader's own; keep only the placeholder
+documents/*
+!documents/PUT-YOUR-DOCUMENTS-HERE.txt
+
 # OS / editor
 Thumbs.db
 desktop.ini

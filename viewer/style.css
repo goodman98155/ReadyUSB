@@ -83,6 +83,10 @@ svg { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2
 .primary-button:hover { background: var(--accent-hover); }
 .primary-button:active { transform: translateY(1px); }
 .primary-button.small { min-height: 40px; padding: 0 1.1em; font-size: .95rem; }
+.primary-button:disabled { opacity: .6; cursor: default; transform: none; }
+.primary-button.danger { background: var(--error); color: var(--bg); }
+.primary-button.danger:hover { background: var(--error); filter: brightness(.92); }
+a.primary-button { text-decoration: none; }
 
 .link-button {
   border: 0; background: none; padding: .4em .2em;
@@ -192,6 +196,20 @@ svg { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2
 }
 .privacy-note svg { margin-top: 3px; font-size: 16px; color: var(--accent); }
 
+.welcome-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;
+  max-width: 760px; margin: 0 auto 28px; padding: 10px 12px 10px 14px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+.welcome-icon {
+  display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 10px;
+  background: var(--accent-soft); color: var(--accent); font-size: 19px;
+}
+.welcome-text { flex: 1; min-width: 14em; color: var(--ink-2); }
+.welcome-text strong { color: var(--ink); }
+.welcome-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin-left: auto; }
+
 /* ---------- messages ---------- */
 
 .message {
@@ -258,6 +276,60 @@ svg { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2
 }
 .badge-error { background: var(--error-soft); color: var(--error); }
 
+/* ---------- my documents ---------- */
+
+.docs-section { margin-top: 40px; }
+.shelf-heading .shelf-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px 16px; }
+.docs-section .shelf-heading { align-items: center; }
+.docs-section .primary-button svg { font-size: 18px; }
+
+.doc-group { margin: 22px 0 10px; padding: 0 4px; font-size: 1rem; font-weight: 700; color: var(--ink-2); }
+#docs > .doc-group:first-child { margin-top: 0; }
+
+.doc-icon { font: 750 .8rem/1 var(--sans); letter-spacing: .04em; color: var(--ink-2); }
+.doc-icon.kind-pdf { background: var(--error-soft); color: var(--error); border-color: transparent; }
+.doc-icon.kind-image, .doc-icon.kind-video, .doc-icon.kind-audio { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.doc-icon.kind-text, .doc-icon.kind-html { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.book-icon.small.doc-icon { font-size: .58rem; letter-spacing: .02em; }
+
+.docs-empty {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+  padding: 20px 22px; border: 1.5px dashed var(--line-strong); border-radius: var(--radius);
+  color: var(--ink-2);
+}
+.docs-empty strong { color: var(--ink); }
+.docs-empty .primary-button { margin-top: 8px; }
+
+/* ---------- dialog ---------- */
+
+.dialog {
+  width: min(92vw, 520px); padding: 0;
+  border: 1px solid var(--line); border-radius: 20px;
+  background: var(--surface); color: var(--ink); box-shadow: var(--shadow-lift);
+}
+.dialog::backdrop { background: rgba(20, 26, 25, .45); }
+.dialog-body { padding: 24px 26px 22px; }
+.dialog h2 { margin: 0 0 12px; font-size: 1.3rem; }
+.dialog p { margin: 0 0 12px; color: var(--ink-2); }
+.dialog .steps { margin-bottom: 8px; }
+.dialog-tip { font-size: .92rem; }
+.dialog-files {
+  margin: 0 0 18px; padding: 10px 14px; list-style: none; max-height: 180px; overflow-y: auto;
+  background: var(--surface-2); border-radius: 12px; font-size: .95rem;
+}
+.dialog-files li { padding: 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.field-label { display: block; margin: 0 0 6px; font-weight: 600; }
+.field-label span { color: var(--ink-3); font-weight: 400; }
+.field {
+  display: block; width: 100%; min-height: 48px; padding: 0 14px;
+  border: 1.5px solid var(--line-strong); border-radius: 12px;
+  background: var(--surface); color: var(--ink); font: inherit;
+}
+.field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.field + .field { margin-top: 8px; }
+.dialog .dialog-error { margin: 14px 0 0; padding: 10px 12px; border-radius: 10px; background: var(--error-soft); color: var(--error); }
+.dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 10px 18px; margin-top: 22px; }
+
 .site-footer {
   padding: 22px 24px 28px; text-align: center;
   color: var(--ink-3); font-size: .88rem; border-top: 1px solid var(--line);
@@ -302,7 +374,8 @@ svg { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2
 .search-compact .search-input:focus { background: var(--surface); box-shadow: 0 0 0 4px var(--accent-soft); }
 
 .reader-body { position: relative; flex: 1; min-height: 0; background: #fff; }
-#page { display: block; width: 100%; height: 100%; border: 0; background: #fff; }
+#page, #docFrame { display: block; width: 100%; height: 100%; border: 0; background: #fff; }
+#readerView.no-page-tools #textSmallerBtn, #readerView.no-page-tools #textLargerBtn, #readerView.no-page-tools #printBtn { display: none; }
 
 .reader-status {
   position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -330,6 +403,8 @@ svg { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2
   .shelf { grid-template-columns: 1fr; }
   .reader-bar { flex-wrap: wrap; gap: 6px; padding: 8px 10px; }
   .bar-button span, .book-chip, .bar-tools .icon-button:not(#printBtn) { display: none; }
+  .bar-button { padding: 0 12px; }
+  .shelf-heading { flex-wrap: wrap; }
   .search-compact { order: 5; flex-basis: 100%; max-width: none; }
 }
 

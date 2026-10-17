@@ -1,0 +1,6 @@
+Put your own documents in this folder: PDFs, pictures, manuals, medical plans,
+important phone numbers, insurance papers.
+
+Every file in here shows up under "My documents" in the library.
+You can make folders in here to group them, for example "Medical" or "House".
+To remove a document, delete its file.

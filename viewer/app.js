@@ -12,7 +12,7 @@
   var TEXT_KEY = 'readyusb.textScale';
   var DB_NAME = 'readyusb';
   var LINK_BASE = 'http://zim.invalid/';
-  var MAX_SCAN_DEPTH = 3;
+  var MAX_SCAN_DEPTH = 4;   // drive / library / zims / two levels of subfolders
   var supportsFolderMemory = typeof window.showDirectoryPicker === 'function';
 
   var state = {
@@ -20,7 +20,8 @@
     byId: {},
     docs: [],             // {id, file, info, handle?, dir?}  (handle/dir only with folder memory)
     docById: {},
-    driveRoot: false,     // true when the chosen folder is the drive itself, not just the book folder
+    libraryRoot: false,   // true when the drive or its library folder was chosen, not just the book folder
+    libraryDir: null,     // handle of the library folder (holds zims/ and documents/), with folder memory
     connected: false,
     dirHandle: null,
     route: null,
@@ -172,6 +173,7 @@
     var folder = CONFIG.zimFolderName || 'zims';
     document.querySelectorAll('.zim-folder-name').forEach(function (el) { el.textContent = folder; });
     document.querySelectorAll('.docs-folder-name').forEach(function (el) { el.textContent = docsFolder(); });
+    document.querySelectorAll('.library-folder-name').forEach(function (el) { el.textContent = libraryFolder(); });
     if (CONFIG.title) document.title = CONFIG.title;
   }
 
@@ -222,6 +224,7 @@
     return book;
   }
 
+  function libraryFolder() { return CONFIG.libraryFolderName || 'library'; }
   function docsFolder() { return CONFIG.documentsFolderName || 'documents'; }
 
   /** Path inside the documents folder ("Medical/plan.pdf"), or null when the file isn't in it. */
@@ -272,7 +275,7 @@
 
   /**
    * entries: [{file, path, handle?, dir?}] from a folder scan or a file picker.
-   * opts.driveRoot: the folder chosen was the drive itself. opts.keepDocs: only books changed (a drop).
+   * opts.libraryRoot: the drive or its library folder was chosen. opts.keepDocs: only books changed (a drop).
    */
   async function loadFiles(entries, opts) {
     opts = opts || {};
@@ -286,10 +289,10 @@
       var rel = docRelPath(e.path);
       if (rel && isDocName(e.file.name)) docs.push(makeDoc(e, rel));
     });
-    if (!zims.length && !docs.length && !opts.driveRoot) {
+    if (!zims.length && !docs.length && !opts.libraryRoot) {
       showLibraryMessage('Nothing found there',
-        'We couldn\'t find any books or documents in that folder. Try again and choose this drive: the folder that has ' +
-        '<strong>START HERE.html</strong> in it.', true);
+        'We couldn\'t find any books or documents in that folder. Try again and choose this drive, or the folder named ' +
+        '<strong>' + escapeHtml(libraryFolder()) + '</strong> on it.', true);
       return false;
     }
     showLibraryMessage(null);
@@ -304,7 +307,7 @@
     books.forEach(function (b) { state.byId[b.id] = b; });
     if (!opts.keepDocs) {
       setDocs(docs);
-      state.driveRoot = !!opts.driveRoot || docs.length > 0;
+      state.libraryRoot = !!opts.libraryRoot || docs.length > 0;
     }
     state.connected = true;
     saveShelfCache();
@@ -329,10 +332,11 @@
     return out;
   }
 
-  /** True when the chosen folder is the drive itself (has START HERE.html, zims or documents in it). */
-  async function isDriveFolder(handle) {
+  /** True when the chosen folder is the drive (START HERE.html, library) or the library folder (zims, documents). */
+  async function isLibraryRoot(handle) {
     var tries = [
       function () { return handle.getFileHandle('START HERE.html'); },
+      function () { return handle.getDirectoryHandle(libraryFolder()); },
       function () { return handle.getDirectoryHandle(CONFIG.zimFolderName || 'zims'); },
       function () { return handle.getDirectoryHandle(docsFolder()); }
     ];
@@ -343,20 +347,26 @@
   }
 
   /** Same test for the fallback picker, where paths start with the chosen folder's name. */
-  function isDrivePick(entries) {
-    var names = ['start here.html', (CONFIG.zimFolderName || 'zims').toLowerCase(), docsFolder().toLowerCase()];
+  function isLibraryPick(entries) {
+    var names = ['start here.html', libraryFolder().toLowerCase(), (CONFIG.zimFolderName || 'zims').toLowerCase(), docsFolder().toLowerCase()];
     return entries.some(function (e) {
       var parts = e.path.toLowerCase().split('/');
       return parts.length > 1 && names.indexOf(parts[1]) >= 0;
     });
   }
 
+  /** The library folder: "library" on the drive when the drive was chosen, else the chosen folder itself. */
+  async function findLibraryDir(handle) {
+    try { return await handle.getDirectoryHandle(libraryFolder()); } catch (e) { return handle; }
+  }
+
   async function connectHandle(handle) {
     state.dirHandle = handle;
     setLoading(true, 'Looking for books and documents…');
     try {
+      state.libraryDir = await findLibraryDir(handle);
       var found = await scanDirectory(handle, '', 0, []);
-      return await loadFiles(found, { driveRoot: await isDriveFolder(handle) });
+      return await loadFiles(found, { libraryRoot: await isLibraryRoot(handle) });
     } catch (err) {
       setLoading(false);
       showLibraryMessage('Couldn\'t open that folder', escapeHtml(friendlyError(err)), true);
@@ -401,7 +411,7 @@
 
   /** Adding and removing documents needs the remembered folder (Chrome/Edge) and the whole drive. */
   function canChangeDocs() {
-    return supportsFolderMemory && state.connected && !!state.dirHandle && state.driveRoot;
+    return supportsFolderMemory && state.connected && !!state.dirHandle && state.libraryRoot;
   }
 
   async function ensureWritable() {
@@ -422,8 +432,9 @@
   async function refreshDocs() {
     var found = [];
     try {
-      var dir = await state.dirHandle.getDirectoryHandle(docsFolder());
-      await scanDirectory(dir, docsFolder() + '/', 1, found);
+      var dir = await state.libraryDir.getDirectoryHandle(docsFolder());
+      // Same depth limit as the first scan, which started at the chosen folder.
+      await scanDirectory(dir, docsFolder() + '/', state.libraryDir === state.dirHandle ? 1 : 2, found);
     } catch (e) { /* no documents folder yet */ }
     setDocs(found.filter(function (e) { return !/\.zim$/i.test(e.file.name); })
       .map(function (e) { return makeDoc(e, docRelPath(e.path)); }));
@@ -455,7 +466,7 @@
 
   async function saveDocuments(files, group) {
     if (!(await ensureWritable())) throw needWriteError();
-    var dir = await state.dirHandle.getDirectoryHandle(docsFolder(), { create: true });
+    var dir = await state.libraryDir.getDirectoryHandle(docsFolder(), { create: true });
     var parts = group ? group.split('/') : [];
     for (var i = 0; i < parts.length; i++) dir = await dir.getDirectoryHandle(parts[i], { create: true });
     for (var j = 0; j < files.length; j++) {
@@ -521,11 +532,12 @@
   }
 
   function showAddHelp() {
-    if (!state.driveRoot) {
+    if (!state.libraryRoot) {
       openDialog({
         title: 'Choose the drive first',
-        html: '<p>Right now the library is reading only the <strong class="zim-folder-name">' + escapeHtml(CONFIG.zimFolderName || 'zims') +
-          '</strong> folder. To keep your own documents here, choose this drive instead: the folder that has <strong>START HERE.html</strong> in it.</p>',
+        html: '<p>Right now the library is reading only the <strong>' + escapeHtml(CONFIG.zimFolderName || 'zims') +
+          '</strong> folder. To keep your own documents here, choose this drive, or the folder named <strong>' +
+          escapeHtml(libraryFolder()) + '</strong> on it.</p>',
         actions: [
           { label: 'Cancel', kind: 'link' },
           { label: 'Choose the drive', kind: 'primary', run: function () { state.dirHandle = null; openLibrary(); } }
@@ -541,7 +553,7 @@
         'You can copy them in yourself instead:</p>' +
         '<ol class="steps">' +
           '<li>Open this drive in File Explorer (on a Mac, Finder).</li>' +
-          '<li>Open the folder named <strong>' + escapeHtml(docsFolder()) + '</strong>.</li>' +
+          '<li>Open the <strong>' + escapeHtml(libraryFolder()) + '</strong> folder, then the <strong>' + escapeHtml(docsFolder()) + '</strong> folder inside it.</li>' +
           '<li>Copy your files into it. You can make folders inside it to group them, like “Medical”.</li>' +
           '<li>Come back here and click <strong>Open my library again</strong>.</li>' +
         '</ol>' +
@@ -559,7 +571,7 @@
       html: '<p>Your browser asks once each visit before it shows the books and documents on this drive.</p>' +
         '<ol class="steps">' +
           '<li>Click <strong>Open my library</strong>.</li>' +
-          '<li>Choose this drive: the folder that has <strong>START HERE.html</strong> in it.</li>' +
+          '<li>Choose this drive, or the folder named <strong>' + escapeHtml(libraryFolder()) + '</strong> on it.</li>' +
           '<li>Click <strong>Select Folder</strong> (or <strong>Upload</strong>, <strong>Open</strong>, or <strong>View files</strong>).</li>' +
         '</ol>' +
         '<p class="dialog-tip">If your browser asks to “upload” or “view” files, that\'s normal. Nothing leaves this computer, and no internet is needed.</p>',
@@ -721,18 +733,18 @@
     var infos = state.connected ? state.docs.map(function (d) { return d.info; }) : ((cache && cache.docs) || []);
     $('docsSection').hidden = !state.connected && !infos.length;
     $('docsCount').textContent = infos.length ? infos.length + (infos.length === 1 ? ' document' : ' documents') : '';
-    $('addDocsBtn').hidden = !state.connected || !state.driveRoot;
+    $('addDocsBtn').hidden = !state.connected || !state.libraryRoot;
 
     var empty = $('docsEmpty');
     empty.hidden = !(state.connected && !infos.length);
     if (!empty.hidden) {
-      empty.innerHTML = state.driveRoot
+      empty.innerHTML = state.libraryRoot
         ? '<strong>Keep your own papers here too.</strong>' +
           '<span>PDFs, pictures and manuals, like a medical plan, important phone numbers or insurance papers. ' +
           'They\'ll be on this drive next to your books, and they work without internet.</span>'
         : '<strong>Your own documents can live here too.</strong>' +
-          '<span>Right now the library is reading only the book folder. To see your documents, choose this drive instead: ' +
-          'the folder that has <strong>START HERE.html</strong> in it.</span>' +
+          '<span>Right now the library is reading only the book folder. To see your documents, choose this drive, ' +
+          'or the folder named <strong>' + escapeHtml(libraryFolder()) + '</strong> on it.</span>' +
           '<button type="button" class="primary-button small" id="docsChooseDriveBtn">Choose the drive</button>';
     }
 
@@ -1332,7 +1344,7 @@
     $('folderInput').addEventListener('change', function () {
       if (!this.files.length) return;
       var entries = filesFromInput(this);
-      loadFiles(entries, { driveRoot: isDrivePick(entries) });
+      loadFiles(entries, { libraryRoot: isLibraryPick(entries) });
     });
     $('filesInput').addEventListener('change', function () { if (this.files.length) loadFiles(filesFromInput(this), { keepDocs: true }); });
     $('addDocsBtn').addEventListener('click', addDocuments);

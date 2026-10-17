@@ -18,7 +18,7 @@
   --error: #a3352b;
   --error-soft: #fbe9e6;
   --mark: #fde9a8;
-  /* Logo tile color (branding/README.md); the same in light and dark mode */
+  /* Logo tile color (viewer/branding/README.md); the same in light and dark mode */
   --brand: #2f6b4f;
   --shadow: 0 1px 2px rgba(29, 39, 37, .06), 0 4px 14px rgba(29, 39, 37, .06);
   --shadow-lift: 0 2px 4px rgba(29, 39, 37, .07), 0 12px 28px rgba(29, 39, 37, .10);

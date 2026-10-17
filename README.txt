@@ -5,13 +5,13 @@ Your offline library: trusted reference books that work without internet.
 FOR READERS
 -----------
 1. Double-click "START HERE.html". It opens in your web browser.
-2. The first time, click "Open my library" and choose this drive (the folder
-   that has "START HERE.html" in it).
+2. The first time, click "Open my library" and choose this drive, or the
+   folder named "library" on it.
 3. Click a book or document, or type what you need in the search box.
 
 Your own documents: click "Add documents" to put your own PDFs, pictures and
 manuals on the drive (Chrome or Edge). In Firefox or Safari, copy them into the
-"documents" folder with File Explorer or Finder. They show under "My documents".
+"library\documents" folder with File Explorer or Finder. They show under "My documents".
 
 No internet and no installing needed. Nothing you read or search leaves the computer.
 Best in Chrome or Edge (they remember the folder). Firefox and Safari also work,
@@ -24,14 +24,15 @@ Folder layout (keep it together):
 
     START HERE.html     <- the only file readers open
     README.txt          <- this file
-    zims\               <- put .zim files here
-    documents\          <- the reader's own files (PDFs, pictures, manuals)
+    library\            <- readers can choose this folder or the whole drive
+        zims\           <- put .zim files here
+        documents\      <- the reader's own files (PDFs, pictures, manuals)
     viewer\             <- the reader program (don't change, except config.js)
 
-Adding books:   copy .zim files into the "zims" folder. That's it.
+Adding books:   copy .zim files into the "library\zims" folder. That's it.
 Removing books: delete the .zim file.
-Adding documents: copy files into the "documents" folder. Folders inside it
-                  show as groups, for example documents\Medical.
+Adding documents: copy files into the "library\documents" folder. Folders
+                  inside it show as groups, for example library\documents\Medical.
 Renaming the library: open viewer\config.js in Notepad and change the title.
 
 Where to get books: https://library.kiwix.org  (download on any internet-connected computer)

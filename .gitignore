@@ -2,12 +2,12 @@
 CLAUDE.md
 
 # Book files are large and user-supplied; keep only the placeholder
-zims/*
-!zims/PUT-ZIM-FILES-HERE.txt
+library/zims/*
+!library/zims/PUT-ZIM-FILES-HERE.txt
 
 # Personal documents are the reader's own; keep only the placeholder
-documents/*
-!documents/PUT-YOUR-DOCUMENTS-HERE.txt
+library/documents/*
+!library/documents/PUT-YOUR-DOCUMENTS-HERE.txt
 
 # OS / editor
 Thumbs.db

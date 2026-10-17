@@ -9,6 +9,9 @@ window.LIBRARY_CONFIG = {
   // One friendly line under the heading
   subtitle: "Trusted reference books that work without internet.",
 
+  // Folder on the drive that holds the two folders below
+  libraryFolderName: "library",
+
   // Name of the folder that holds the .zim files (shown in the instructions)
   zimFolderName: "zims",
 

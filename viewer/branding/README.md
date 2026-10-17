@@ -36,8 +36,8 @@ convert the text to outlines in a vector editor.
 
 ## Integrating into the app (notes for Claude in VS Code)
 
-- Keep all of these files in `branding/`. That folder is for the repo; it doesn't need to ship on the
-  drive. Copy only what the app uses into `viewer/`.
+- Keep all of these files in `viewer/branding/`. The app doesn't load anything from this folder: the
+  favicon and logo are inlined in `START HERE.html`. It can ship on the drive (about 150 KB) or be left off.
 - **Favicon:** replace the inline data-URI `<link rel="icon">` in `START HERE.html` with the contents
   of `readyusb-favicon.svg` as a data URI. Keep it inline: no extra file request on `file://`.
 - **Header brand mark:** replace the open-book `<svg>` inside `.brand-mark` in `START HERE.html`

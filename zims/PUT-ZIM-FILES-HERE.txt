@@ -1,0 +1,4 @@
+Put your .zim book files in this folder.
+
+Every .zim file in here shows up as a book in the library.
+To remove a book, delete its .zim file. Nothing else needs to change.

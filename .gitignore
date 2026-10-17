@@ -1,0 +1,13 @@
+# Local-only notes
+CLAUDE.md
+
+# Book files are large and user-supplied; keep only the placeholder
+zims/*
+!zims/PUT-ZIM-FILES-HERE.txt
+
+# OS / editor
+Thumbs.db
+desktop.ini
+.DS_Store
+.vs/
+.vscode/

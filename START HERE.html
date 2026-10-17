@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ReadyUSB</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f6b4f'/%3E%3Cpath d='M8 9.5c2.8-1 5.4-.8 8 .9 2.6-1.7 5.2-1.9 8-.9v13c-2.8-1-5.4-.8-8 .9-2.6-1.7-5.2-1.9-8-.9z' fill='none' stroke='%23fff' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M16 10.4v13' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232f6b4f'/%3E%3Cg transform='translate(6 5) scale(.8125)'%3E%3Crect x='24' y='5' width='16' height='14' rx='1.5' fill='%23ffffff'/%3E%3Crect x='19.5' y='23.5' width='25' height='26' rx='6' fill='none' stroke='%23ffffff' stroke-width='5.5'/%3E%3Cpath d='M32 28c4.3 5.2 6.2 8.5 6.2 11.8a6.2 6.2 0 0 1-12.4 0c0-3.3 1.9-6.6 6.2-11.8z' fill='%23f2b54a'/%3E%3Crect x='21' y='50' width='22' height='8' rx='2' fill='%23ffffff'/%3E%3C/g%3E%3C/svg%3E%0A">
   <link rel="stylesheet" href="viewer/style.css">
 </head>
 <body>
@@ -15,18 +15,17 @@
   <!-- ============ LIBRARY VIEW ============ -->
   <div id="libraryView" class="view">
     <header class="site-header">
-      <div class="brand">
-        <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M3 5.5c3-1.2 6-1 9 1 3-2 6-2.2 9-1v14c-3-1.2-6-1-9 1-3-2-6-2.2-9-1z"/><path d="M12 6.5v14"/></svg>
-        </span>
-        <span class="brand-name" data-config="title">ReadyUSB</span>
-      </div>
       <button class="link-button" id="changeFolderBtn" type="button" hidden>Choose a different folder</button>
     </header>
 
     <main class="library-main">
       <section class="hero">
-        <h1 data-config="title">ReadyUSB</h1>
+        <h1 class="hero-title">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="14 3 36 57"><rect x="24.5" y="5.5" width="15" height="13" rx="1.5" fill="none" stroke="#ffffff" stroke-width="2.8"/><rect x="28" y="9.5" width="3" height="3" fill="#ffffff"/><rect x="33" y="9.5" width="3" height="3" fill="#ffffff"/><rect x="21" y="18.5" width="22" height="5" rx="2" fill="#ffffff"/><rect x="19.5" y="23.5" width="25" height="26" rx="6" fill="none" stroke="#ffffff" stroke-width="3"/><path d="M32 28c4.3 5.2 6.2 8.5 6.2 11.8a6.2 6.2 0 0 1-12.4 0c0-3.3 1.9-6.6 6.2-11.8z" fill="#f2b54a"/><rect x="21" y="50" width="22" height="7" rx="2" fill="#ffffff"/></svg>
+          </span>
+          <span data-config="title">ReadyUSB</span>
+        </h1>
         <p class="hero-sub" data-config="subtitle">Trusted reference books that work without internet.</p>
 
         <div class="search" role="search">

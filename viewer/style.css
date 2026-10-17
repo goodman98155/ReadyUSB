@@ -18,6 +18,8 @@
   --error: #a3352b;
   --error-soft: #fbe9e6;
   --mark: #fde9a8;
+  /* Logo tile color (branding/README.md); the same in light and dark mode */
+  --brand: #2f6b4f;
   --shadow: 0 1px 2px rgba(29, 39, 37, .06), 0 4px 14px rgba(29, 39, 37, .06);
   --shadow-lift: 0 2px 4px rgba(29, 39, 37, .07), 0 12px 28px rgba(29, 39, 37, .10);
   --radius: 14px;
@@ -102,24 +104,28 @@ a.primary-button { text-decoration: none; }
 
 #libraryView { min-height: 100%; display: flex; flex-direction: column; }
 
+/* Holds only "Choose a different folder"; the logo lives in the hero title */
 .site-header {
-  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-  max-width: 1080px; width: 100%; margin: 0 auto; padding: 18px 24px;
+  display: flex; align-items: center; justify-content: flex-end; gap: 1rem;
+  max-width: 1080px; width: 100%; min-height: 71px; margin: 0 auto; padding: 18px 24px;
 }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--ink-2); }
 .brand-mark {
   display: grid; place-items: center; width: 34px; height: 34px;
-  border-radius: 9px; background: var(--accent); color: var(--accent-ink); font-size: 20px;
+  border-radius: 9px; background: var(--brand);
 }
-.brand-name { font-size: 1rem; letter-spacing: .01em; }
+/* The logo carries its own fills and strokes; undo the generic icon style */
+.brand-mark svg { width: auto; height: 25px; fill: none; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; }
 
 .library-main { flex: 1; width: 100%; max-width: 1080px; margin: 0 auto; padding: 8px 24px 40px; }
 
 .hero { text-align: center; padding: 36px 0 30px; }
-.hero h1 {
-  margin: 0; font-family: var(--serif); font-weight: 600;
-  font-size: clamp(2.2rem, 5vw, 3.2rem); line-height: 1.1; letter-spacing: -.01em;
+/* The header lockup (logo tile + name), scaled up; sizes are in em so they follow the font size */
+.hero-title {
+  display: inline-flex; align-items: center; gap: .32em; margin: 0;
+  font-weight: 700; font-size: clamp(2.2rem, 5vw, 3.2rem); line-height: 1.1; letter-spacing: -.015em;
 }
+.hero-title .brand-mark { flex: none; width: 1.3em; height: 1.3em; border-radius: .3em; }
+.hero-title .brand-mark svg { height: .95em; }
 .hero-sub { margin: 12px auto 28px; max-width: 34em; color: var(--ink-2); font-size: 1.12rem; }
 
 /* ---------- search ---------- */

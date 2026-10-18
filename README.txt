@@ -1,4 +1,4 @@
-READYUSB  (version 0.4.0)
+READYUSB  (version 0.5.0)
 =========================
 Your offline library: trusted reference books that work without internet.
 

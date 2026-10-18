@@ -3,6 +3,13 @@
 ReadyUSB uses [semantic versioning](https://semver.org/). The version lives in `viewer/app.js`
 (`VERSION`) and is shown in the page footer.
 
+## 0.5.0 (2026-10-18)
+
+- **"What should I keep here?"** under My documents: 10 papers worth keeping copies of (ID, medical
+  information, emergency contacts, insurance, home papers, bank details, family records, legal
+  papers, photos of your home, pet records), with a reminder to keep the drive somewhere safe.
+  It's one line until opened.
+
 ## 0.4.0 (2026-10-18)
 
 - **Maps.** Offline map books made by openZIM's maps2zim open as a full-window map you can drag and

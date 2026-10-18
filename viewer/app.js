@@ -9,7 +9,7 @@
 
   // Release version: shown in the page footer. Keep README.txt and CHANGELOG.md in step
   // (tools/make-release.ps1 checks this).
-  var VERSION = '0.4.0';
+  var VERSION = '0.5.0';
 
   // Title search is hidden until full-text search is ready; the code stays. true shows both search boxes.
   var SHOW_SEARCH = false;
@@ -746,6 +746,30 @@
     '</button>';
   }
 
+  // Papers county emergency offices (and Ready.gov / FEMA) suggest keeping copies of.
+  var DOC_IDEAS = [
+    ['Photo ID', 'driver\'s licenses, passports'],
+    ['Medical information', 'medicines, allergies, doctors, insurance cards'],
+    ['Emergency contacts', 'phone numbers, where to meet'],
+    ['Insurance policies', 'home or renters, car, health, life'],
+    ['Home papers', 'deed or lease, car titles'],
+    ['Bank and money', 'accounts, cards, numbers to call if lost'],
+    ['Family records', 'birth and marriage certificates, Social Security cards'],
+    ['Legal papers', 'wills, powers of attorney, health care wishes'],
+    ['Photos of your home', 'rooms and belongings, for insurance claims'],
+    ['Pet records', 'shots, microchip number, vet, a photo of you with your pet']
+  ];
+
+  function docIdeasHtml() {
+    return '<details class="doc-ideas"><summary>What should I keep here? <span>10 suggestions</span></summary>' +
+      '<ul>' + DOC_IDEAS.map(function (d) {
+        return '<li><strong>' + escapeHtml(d[0]) + '</strong> <span>' + escapeHtml(d[1]) + '</span></li>';
+      }).join('') + '</ul>' +
+      '<p class="doc-ideas-safe"><strong>Keep this drive somewhere safe</strong>, like a home safe or a fire-resistant box. ' +
+      'Anyone who has it can open these files. For extra safety, keep only the last 4 digits of account and Social Security numbers.</p>' +
+      '</details>';
+  }
+
   function renderDocs(cache) {
     var infos = state.connected ? state.docs.map(function (d) { return d.info; }) : ((cache && cache.docs) || []);
     $('docsSection').hidden = !state.connected && !infos.length;
@@ -758,7 +782,7 @@
       empty.innerHTML = state.libraryRoot
         ? '<strong>Keep your own papers here too.</strong>' +
           '<span>PDFs, pictures and manuals, like a medical plan, important phone numbers or insurance papers. ' +
-          'They\'ll be on this drive next to your books, and they work without internet.</span>'
+          'They\'ll be on this drive next to your books, and they work without internet.</span>' + docIdeasHtml()
         : '<strong>Your own documents can live here too.</strong>' +
           '<span>Right now the library is reading only the book folder. To see your documents, choose this drive, ' +
           'or the folder named <strong>' + escapeHtml(libraryFolder()) + '</strong> on it.</span>' +
@@ -776,7 +800,7 @@
     $('docs').innerHTML = order.map(function (g) {
       return (g ? '<h3 class="doc-group">' + escapeHtml(groupLabel(g)) + '</h3>' : '') +
         '<div class="shelf">' + byGroup[g].map(docCard).join('') + '</div>';
-    }).join('');
+    }).join('') + (state.connected && state.libraryRoot && infos.length ? docIdeasHtml() : '');
   }
 
   // ---------------------------------------------------------------- search

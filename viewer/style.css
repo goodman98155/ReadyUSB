@@ -307,6 +307,19 @@ a.primary-button { text-decoration: none; }
 .docs-empty strong { color: var(--ink); }
 .docs-empty .primary-button { margin-top: 8px; }
 
+/* "What should I keep here?": one line until opened */
+.doc-ideas { width: 100%; margin-top: 6px; font-size: .92rem; color: var(--ink-2); }
+#docs > .doc-ideas { margin-top: 14px; padding: 0 4px; }
+.doc-ideas summary { cursor: pointer; color: var(--accent); font-weight: 600; width: fit-content; }
+.doc-ideas summary span { color: var(--ink-3); font-weight: 400; }
+.doc-ideas ul { columns: 2 18em; column-gap: 28px; margin: 10px 0 0; padding: 0; list-style: none; line-height: 1.35; }
+.doc-ideas li { break-inside: avoid; padding: 3px 0; }
+.doc-ideas li strong { color: var(--ink); font-weight: 600; }
+.doc-ideas li span { color: var(--ink-3); }
+.doc-ideas li span::before { content: "· "; }
+.doc-ideas-safe { margin: 10px 0 0; padding: 8px 12px; border-radius: 10px; background: var(--warn-soft); color: var(--ink-2); }
+.doc-ideas-safe strong { color: var(--warn); }
+
 /* ---------- dialog ---------- */
 
 .dialog {

@@ -281,6 +281,7 @@ a.primary-button { text-decoration: none; }
   font-size: .72rem; font-weight: 650; letter-spacing: .02em; white-space: nowrap;
 }
 .badge-error { background: var(--error-soft); color: var(--error); }
+.badge-map { background: var(--accent-soft); color: var(--accent); }
 
 /* ---------- my documents ---------- */
 
@@ -388,6 +389,10 @@ body.no-search .hero-sub { margin-bottom: 8px; }
 
 .reader-body { position: relative; flex: 1; min-height: 0; background: #fff; }
 #page, #docFrame { display: block; width: 100%; height: 100%; border: 0; background: #fff; }
+/* id selector so it wins over MapLibre's own .maplibregl-map rule, which loads later */
+#mapView { position: absolute; inset: 0; background: var(--bg); }
+.map-home-button svg { font-size: 18px; color: #333; }
+.maplibregl-ctrl-group button { width: 40px; height: 40px; }
 #readerView.no-page-tools #textSmallerBtn, #readerView.no-page-tools #textLargerBtn, #readerView.no-page-tools #printBtn { display: none; }
 
 .reader-status {

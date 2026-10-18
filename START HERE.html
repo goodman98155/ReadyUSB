@@ -145,6 +145,8 @@
       <iframe id="page" title="Article" sandbox="allow-same-origin allow-modals"></iframe>
       <!-- PDFs need the browser's own viewer, which doesn't run inside a sandboxed frame -->
       <iframe id="docFrame" title="Document" hidden></iframe>
+      <!-- Map books (viewer/map.js) -->
+      <div id="mapView" hidden></div>
       <div id="readerStatus" class="reader-status" hidden></div>
     </div>
   </div>
@@ -159,6 +161,7 @@
   <script src="viewer/config.js"></script>
   <script src="viewer/vendor/fzstd.js"></script>
   <script src="viewer/zim.js"></script>
+  <script src="viewer/map.js"></script>
   <script src="viewer/app.js"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-READYUSB  (version 0.3.0)
+READYUSB  (version 0.4.0)
 =========================
 Your offline library: trusted reference books that work without internet.
 
@@ -63,6 +63,7 @@ WHAT WORKS IN THIS VERSION
 --------------------------
   - Wikipedia-style books, including pictures
   - Many website copies (marked "Website copy"; some pages may look different)
+  - Offline maps made with openZIM's maps2zim (marked "Map")
   - Your own documents: PDFs, pictures, text, video and sound open in the
     library; Word, Excel and other files can be saved and opened elsewhere
 

@@ -3,6 +3,15 @@
 ReadyUSB uses [semantic versioning](https://semver.org/). The version lives in `viewer/app.js`
 (`VERSION`) and is shown in the page footer.
 
+## 0.4.0 (2026-10-18)
+
+- **Maps.** Offline map books made by openZIM's maps2zim open as a full-window map you can drag and
+  zoom, with a "back to the start" button and a scale bar (click it to switch between miles and
+  kilometres). The map follows the computer's light or dark setting, and reopens where you left it.
+  Map books show a "Map" label on the shelf.
+- Maps are drawn with MapLibre GL (BSD license, in `viewer/vendor/`), loaded only when a map opens.
+- If a browser can't draw maps, it explains what to try instead of spinning.
+
 ## 0.3.0 (2026-10-17)
 
 - **Books and documents open in their own tab** in Chrome and Edge, so the library stays open.

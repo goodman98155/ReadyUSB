@@ -24,3 +24,6 @@ SOFTWARE.
 Included third-party code:
   viewer/vendor/fzstd.js  (zstd decompression) - MIT License,
   Copyright (c) 2020 Arjun Barrett. See viewer/vendor/fzstd-LICENSE.txt
+  viewer/vendor/maplibre-gl.js, maplibre-gl.css  (map drawing, version 5.24.0)
+  - BSD 3-Clause License, Copyright (c) 2023 MapLibre contributors.
+  See viewer/vendor/maplibre-gl-LICENSE.txt

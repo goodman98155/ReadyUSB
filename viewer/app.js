@@ -9,14 +9,17 @@
 
   // Release version: shown in the page footer. Keep README.txt and CHANGELOG.md in step
   // (tools/make-release.ps1 checks this).
-  var VERSION = '0.3.0';
+  var VERSION = '0.4.0';
 
   // Title search is hidden until full-text search is ready; the code stays. true shows both search boxes.
   var SHOW_SEARCH = false;
 
   var CONFIG = window.LIBRARY_CONFIG || {};
   var CACHE_KEY = 'readyusb.shelf.v1';
+  // Bump when describeFile learns something new about books, so cached shelf entries are read again.
+  var INFO_VERSION = 2;
   var TEXT_KEY = 'readyusb.textScale';
+  var MAP_VIEW_KEY = 'readyusb.mapView.';   // + book id: where each map was last left
   var DB_NAME = 'readyusb';
   var LINK_BASE = 'http://zim.invalid/';
   var MAX_SCAN_DEPTH = 4;   // drive / library / zims / two levels of subfolders
@@ -207,10 +210,11 @@
   }
 
   async function describeFile(file, id, cached) {
-    if (cached && cached.size === file.size && cached.lastModified === file.lastModified && !cached.error) {
+    if (cached && cached.size === file.size && cached.lastModified === file.lastModified && !cached.error &&
+        cached.v === INFO_VERSION) {
       return { id: id, file: file, info: cached };
     }
-    var info = { id: id, name: file.name, size: file.size, lastModified: file.lastModified };
+    var info = { id: id, name: file.name, size: file.size, lastModified: file.lastModified, v: INFO_VERSION };
     var book = { id: id, file: file, info: info };
     try {
       var a = await getArchive(book);
@@ -224,6 +228,7 @@
         if (main) await a.getContent(main);
       }
       a.isWebsiteCopy = !!d.isWebsiteCopy;
+      info.isMap = await ReadyMap.isMapBook(a);
     } catch (err) {
       info.title = info.title || file.name.replace(/\.zim$/i, '');
       info.error = friendlyError(err);
@@ -699,11 +704,12 @@
 
     shelf.innerHTML = infos.map(function (info) {
       var meta = [];
-      if (info.articleCount) meta.push(info.articleCount.toLocaleString() + ' articles');
-      if (info.language) meta.push(formatLanguage(info.language));
+      if (info.articleCount && !info.isMap) meta.push(info.articleCount.toLocaleString() + ' articles');
+      if (info.language && !info.isMap) meta.push(formatLanguage(info.language));
       if (info.date) meta.push(formatDate(info.date));
       if (info.size) meta.push(formatSize(info.size));
       var badge = info.error ? '<span class="badge badge-error">Can\'t open</span>'
+        : info.isMap ? '<span class="badge badge-map">Map</span>'
         : (info.isWebsiteCopy ? '<span class="badge" title="Copied from a website. Some pages may not look exactly like the original.">Website copy</span>' : '');
       if (badge) meta.unshift('');
       return '<button type="button" class="book-card' + (info.error ? ' is-error' : '') + (state.connected ? '' : ' is-waiting') +
@@ -911,7 +917,8 @@
     p.set('book', r.book);
     if (r.page) p.set('page', r.page);
     if (r.at) p.set('at', r.at);
-    return '#' + p.toString();
+    if (r.map) p.set('map', r.map);
+    return '#' + p.toString().replace(/%2F/g, '/');
   }
   function hashToRoute() {
     var h = location.hash.replace(/^#/, '');
@@ -919,7 +926,16 @@
     var p = new URLSearchParams(h);
     if (p.get('doc')) return { doc: p.get('doc') };
     if (!p.get('book')) return null;
-    return { book: p.get('book'), page: p.get('page') || '', at: p.get('at') || '' };
+    return { book: p.get('book'), page: p.get('page') || '', at: p.get('at') || '', map: p.get('map') || '' };
+  }
+
+  /** Map position in the address: "zoom/lat/lon", like openstreetmap.org. */
+  function mapViewToParam(v) {
+    return v.zoom.toFixed(2) + '/' + v.lat.toFixed(5) + '/' + v.lon.toFixed(5);
+  }
+  function paramToMapView(s) {
+    var n = String(s || '').split('/').map(Number);
+    return n.length === 3 && n.every(isFinite) ? { zoom: n[0], lat: n[1], lon: n[2] } : null;
   }
   function go(r) {
     var h = routeToHash(r);
@@ -970,7 +986,8 @@
     }
     if (!book) { showView('library'); toast('That book isn\'t in this library.'); return; }
     showView('reader');
-    showArticle(book, r.page || book.info.mainPath, r.at);
+    if (book.info.isMap) showMapBook(book, paramToMapView(r.map));
+    else showArticle(book, r.page || book.info.mainPath, r.at);
   }
 
   function showView(which) {
@@ -991,18 +1008,22 @@
   }
 
   /**
-   * mode: 'book' (ZIM pages), 'doc' (a document in the page frame), 'pdf' (browser PDF viewer)
-   * or 'file' (a document we can only offer as a download).
+   * mode: 'book' (ZIM pages), 'map' (a map book), 'doc' (a document in the page frame),
+   * 'pdf' (browser PDF viewer) or 'file' (a document we can only offer as a download).
    */
   function setReaderMode(mode) {
     var rv = $('readerView'), df = $('docFrame');
-    rv.classList.toggle('is-doc', mode !== 'book');
-    rv.classList.toggle('no-page-tools', mode === 'pdf' || mode === 'file');
-    $('page').hidden = mode === 'pdf';
+    rv.classList.toggle('is-doc', mode !== 'book' && mode !== 'map');
+    rv.classList.toggle('no-page-tools', mode === 'pdf' || mode === 'file' || mode === 'map');
+    $('page').hidden = mode === 'pdf' || mode === 'map';
     df.hidden = mode !== 'pdf';
     if (mode !== 'pdf' && df.getAttribute('src')) df.src = 'about:blank';
-    $('removeDocBtn').hidden = mode === 'book' || !canChangeDocs();
-    $('bookHomeBtn').title = mode === 'book' ? 'Go to this book\'s front page' : 'Back to all books and documents';
+    $('mapView').hidden = mode !== 'map';
+    if (mode !== 'map') ReadyMap.close();
+    if (mode === 'map' && $('page').srcdoc) $('page').removeAttribute('srcdoc');
+    $('removeDocBtn').hidden = mode === 'book' || mode === 'map' || !canChangeDocs();
+    $('bookHomeBtn').title = mode === 'book' ? 'Go to this book\'s front page'
+      : mode === 'map' ? 'Back to the start of this map' : 'Back to all books and documents';
   }
 
   // ---------------------------------------------------------------- reader
@@ -1235,6 +1256,61 @@
     }
   }
 
+  function mapErrorHtml(err) {
+    var code = err && err.code;
+    if (code === 'NO_WEBGL') {
+      return '<strong>This browser can\'t draw maps on this computer.</strong>' +
+        '<span>Try another browser, like Chrome, Edge or Firefox. If the map still doesn\'t show, turn on ' +
+        '“graphics acceleration” (also called “hardware acceleration”) in the browser\'s settings.</span>';
+    }
+    if (code === 'NO_LIBRARY') {
+      return '<strong>Part of this library is missing, so maps can\'t be shown.</strong>' +
+        '<span>Copy ReadyUSB onto this drive again. The missing file is viewer/vendor/maplibre-gl.js.</span>';
+    }
+    if (code === 'TIMEOUT') return '<strong>The map is taking too long to open.</strong><span>Is the drive still plugged in?</span>';
+    if (code === 'NO_STYLE') return '<strong>This map book is missing its map style, so it can\'t be shown.</strong>';
+    return '<strong>' + escapeHtml(friendlyError(err)) + '</strong>';
+  }
+
+  /** view: {lat, lon, zoom} from the address, or null to open where the map was last left. */
+  async function showMapBook(book, view) {
+    updateBookChip(book);
+    setReaderMode('map');
+    if (state.current && state.current.book === book && state.current.isMap) {
+      if (view) ReadyMap.setView(view);   // Back/Forward within the same map
+      return;
+    }
+    var token = ++state.navToken;
+    revokeBlobs();
+    state.current = { book: book, isMap: true };
+    setStatus('<span class="spinner"></span><span>Opening map…</span>', 'loading');
+    try {
+      var archive = await getArchive(book);
+      if (token !== state.navToken) return;
+      await ReadyMap.show($('mapView'), archive, {
+        view: view || lsGet(MAP_VIEW_KEY + book.id),
+        onMove: function (v) {
+          lsSet(MAP_VIEW_KEY + book.id, v);
+          // Keep the place in the address without adding a history step for every drag.
+          if (state.current && state.current.book === book) {
+            history.replaceState(history.state, '', routeToHash({ book: book.id, map: mapViewToParam(v) }));
+          }
+        }
+      });
+      if (token !== state.navToken) return;
+      setStatus(null);
+      document.title = book.info.title;
+    } catch (err) {
+      if (token !== state.navToken || (err && err.code === 'CANCELLED')) return;
+      console.warn('Could not show map', book.id, err);
+      ReadyMap.close();
+      state.current = { book: book, entry: null };
+      setStatus(mapErrorHtml(err) + '<span class="status-actions">' +
+        '<button type="button" class="primary-button small" id="statusHomeBtn">Back to library</button></span>', 'error');
+      $('statusHomeBtn').onclick = backToLibrary;
+    }
+  }
+
   var MAX_TEXT_BYTES = 4 * 1024 * 1024;
 
   async function documentHtml(info, file, url) {
@@ -1409,7 +1485,8 @@
 
     $('libraryBtn').addEventListener('click', backToLibrary);
     $('bookHomeBtn').addEventListener('click', function () {
-      if (state.current && state.current.book) go({ book: state.current.book.id });
+      if (state.current && state.current.isMap) ReadyMap.goHome();
+      else if (state.current && state.current.book) go({ book: state.current.book.id });
       else backToLibrary();
     });
     $('backBtn').addEventListener('click', function () { history.back(); });
